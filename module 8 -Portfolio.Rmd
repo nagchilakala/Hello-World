@@ -1,0 +1,105 @@
+---
+title: "R Notebook"
+output: html_notebook
+---
+
+```{r}
+rm(list =ls())
+library(kernlab)
+setwd("C:/Users/hchil/Documents/R Jobs") #set the current working library
+creditdata <- read.csv("crx.data", header=FALSE)
+
+head(creditdata) # display 6 rows of the dataset 
+
+summary(creditdata) 
+
+str(creditdata)
+
+#Imputation 
+
+Col2 <- as.numeric(creditdata$V2[creditdata$V2 != "?"])
+Median <- median(Col2)
+Median 
+creditdata$V2[creditdata$V2 == "NA"] = Median 
+creditdata$V2 <- as.numeric(creditdata$V2)
+
+creditdata$V14 <- as.numeric(creditdata$V14)
+creditdata$V16 <- as.numeric(creditdata$V16)
+
+creditdata$V16[creditdata$V16 == 1] = 0
+creditdata$V16[creditdata$V16 == 2] = 1
+str(creditdata)
+
+library(dplyr)
+mydata <- creditdata
+ 
+# Select columns of the dataframe
+data1 <- select(mydata,V2,V3,V11,V14,V15,V16)
+#data1 <- select(mydata,V3,V11,V14,V15,V16)
+#summary(data1$V2)
+#creditdata$V16
+
+
+```
+
+```{r}
+x =list(0.1,1,5,10,20)
+y <-0
+z <-1
+for(i in x)
+{
+  model <-ksvm(as.matrix(data1[,1:5]),as.matrix(data1[,6]),type="C-svc",kernel="vanilladot",C=i,scaled=TRUE)
+  print(model)
+  a <-colSums(model@xmatrix[[1]] *model@coef[[1]])
+  a0 <- -model@b 
+  prediction=predict(model,data1[,1:5]) 
+  y[[z]] <-sum(prediction ==data1[,6])/nrow(data1) 
+  z <-z +1
+  print(a) 
+  print(a0)
+}
+plot(x,y, xlab="C-Values", ylab="Accuracy",panel.first=grid())
+
+
+```
+
+```{r}
+set.seed(10)
+data <- sample(nrow(data1),size=ceiling(nrow(data1)*0.7))
+train <-  data1[data,]
+test <- data1[-data,]
+
+model <-ksvm(as.matrix(train[,1:5]),as.matrix(train[,6]),type="C-svc",kernel="vanilladot",C=i,scaled=TRUE)
+print(model)
+prediction1=predict(model,train[,1:5]) 
+
+sum(prediction1 ==train[,6])/nrow(train) 
+
+model <-ksvm(as.matrix(test[,1:5]),as.matrix(test[,6]),type="C-svc",kernel="vanilladot",C=i,scaled=TRUE)
+print(model)
+prediction2=predict(model,test[,1:5]) 
+sum(prediction2 ==test[,6])/nrow(test) 
+
+```
+
+```{r}
+model <-ksvm(as.matrix(train[,1:5]),as.matrix(train[,6]),type="C-svc",kernel="polydot",C=i,scaled=TRUE)
+print(model)
+prediction1=predict(model,train[,1:5]) 
+
+sum(prediction1 ==train[,6])/nrow(train) 
+
+model <-ksvm(as.matrix(test[,1:5]),as.matrix(test[,6]),type="C-svc",kernel="polydot",C=i,scaled=TRUE)
+print(model)
+prediction2=predict(model,test[,1:5]) 
+sum(prediction2 ==test[,6])/nrow(test) 
+
+```
+
+
+
+```{r}
+plot(data1[,-c(0,6)])
+
+```
+
